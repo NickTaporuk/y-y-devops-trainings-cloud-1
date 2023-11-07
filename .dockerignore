@@ -1,0 +1,8 @@
+bin
+terraform
+deployment
+.idea
+README.md
+LICENSE
+Makefile
+.gitignore

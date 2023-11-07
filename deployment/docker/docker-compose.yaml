@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  gigamock:
+    build:
+      context: .
+      dockerfile: ./docker/gigamock/Dockerfile
+    ports:
+      - "7777:7777"
+    restart: unless-stopped
