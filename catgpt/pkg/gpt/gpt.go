@@ -1,4 +1,4 @@
-package main
+package gpt
 
 import (
 	"bytes"
@@ -15,12 +15,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type catGPT struct {
+type CatGPT struct {
 	client *s3.Client
 	bucket string
 }
 
-func (c *catGPT) List(ctx context.Context) ([]string, error) {
+func (c *CatGPT) List(ctx context.Context) ([]string, error) {
 	result, err := c.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 		Bucket: aws.String(c.bucket),
 	})
@@ -34,7 +34,7 @@ func (c *catGPT) List(ctx context.Context) ([]string, error) {
 	return res, nil
 }
 
-func (c *catGPT) Put(ctx context.Context, key string, data io.Reader) error {
+func (c *CatGPT) Put(ctx context.Context, key string, data io.Reader) error {
 	_, err := c.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: &c.bucket,
 		Key:    &key,
@@ -43,7 +43,7 @@ func (c *catGPT) Put(ctx context.Context, key string, data io.Reader) error {
 	return err
 }
 
-func (c *catGPT) Get(ctx context.Context, key string) (io.ReadCloser, error) {
+func (c *CatGPT) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 	output, err := c.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &c.bucket,
 		Key:    &key,
@@ -54,7 +54,7 @@ func (c *catGPT) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 	return output.Body, nil
 }
 
-func (c *catGPT) EnsureIsImage(r io.Reader) (image.Image, error) {
+func (c *CatGPT) EnsureIsImage(r io.Reader) (image.Image, error) {
 	photo, _, err := image.Decode(r)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ var (
 	nightCatBytes []byte
 )
 
-func (c *catGPT) Enhance(photo image.Image, catType Cat) (io.Reader, error) {
+func (c *CatGPT) Enhance(photo image.Image, catType Cat) (io.Reader, error) {
 	var catBytes = dayCatBytes
 	if catType == CatNocturnal {
 		catBytes = nightCatBytes

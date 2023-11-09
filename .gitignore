@@ -20,3 +20,9 @@
 # Go workspace file
 go.work
 .idea
+catgpt/vendor
+terraform/tf_key.json
+terraform/.terraform
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/.terraform.lock.hcl

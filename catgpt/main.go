@@ -3,14 +3,12 @@ package main
 import (
 	"context"
 	"os"
-)
 
-var (
-	defaultGPT *catGPT
+	"github.com/NickTaporuk/y-y-devops-trainings-cloud-1/pkg/gpt"
 )
 
 func main() {
-	listenPublic := ":8080"
+	listenPublic := ":8090"
 	if lp := os.Getenv("CATGPT_LISTEN_PUBLIC"); lp != "" {
 		listenPublic = lp
 	}
@@ -21,6 +19,7 @@ func main() {
 		listenPrivate = lp
 	}
 
-	defaultGPT = &catGPT{}
-	serve(context.Background(), listenPublic, listenPrivate)
+	defaultGPT := &gpt.CatGPT{}
+	handler := gpt.NewHandler(defaultGPT)
+	gpt.Serve(context.Background(), listenPublic, listenPrivate, handler)
 }

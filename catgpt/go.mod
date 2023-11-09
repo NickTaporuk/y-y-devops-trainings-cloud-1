@@ -1,4 +1,4 @@
-module example/catgpt
+module github.com/NickTaporuk/y-y-devops-trainings-cloud-1
 
 go 1.21.3
 

@@ -1,11 +1,10 @@
-package main
+package gpt
 
 import (
 	"context"
 	"embed"
 	"encoding/base64"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"fmt"
 	"html/template"
 	"image"
 	"io"
@@ -13,6 +12,9 @@ import (
 	"math/rand"
 	"net/http"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type IndexData struct {
@@ -43,7 +45,19 @@ var (
 	indexTpl = template.Must(template.ParseFS(f, "tpl/index.html"))
 )
 
-func index(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	gpt *CatGPT
+}
+
+func NewHandler(gpt *CatGPT) *Handler {
+	return &Handler{gpt: gpt}
+}
+
+func (handler *Handler) Gpt() *CatGPT {
+	return handler.gpt
+}
+
+func (handler *Handler) index(w http.ResponseWriter, r *http.Request) {
 	id := &IndexData{}
 	if r.Method != http.MethodPost {
 		indexTpl.Execute(w, id)
@@ -56,7 +70,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 	var img image.Image
-	img, err = defaultGPT.EnsureIsImage(file)
+	img, err = handler.Gpt().EnsureIsImage(file)
 	if err != nil {
 		id.Error = err
 		return
@@ -66,7 +80,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 		catType = CatNocturnal
 	}
 	var enhanced io.Reader
-	enhanced, err = defaultGPT.Enhance(img, catType)
+	enhanced, err = handler.Gpt().Enhance(img, catType)
 	if err != nil {
 		id.Error = err
 		return
@@ -111,10 +125,12 @@ var (
 		[]string{"cat_type"})
 )
 
-func serve(ctx context.Context, public string, private string) {
+func Serve(ctx context.Context, public string, private string, handler *Handler) {
+	fmt.Println("Starting the server ...")
+
 	indexChain := promhttp.InstrumentHandlerCounter(
 		responseCounterVec.MustCurryWith(prometheus.Labels{"handler": "/"}),
-		http.HandlerFunc(index))
+		http.HandlerFunc(handler.index))
 	pingChain := promhttp.InstrumentHandlerCounter(
 		responseCounterVec.MustCurryWith(prometheus.Labels{"handler": "/ping"}),
 		http.HandlerFunc(ping))
